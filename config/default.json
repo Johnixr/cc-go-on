@@ -1,0 +1,20 @@
+{
+  "storage": "transfer.sh",
+  "storage_options": {
+    "transfer_sh": {
+      "host": "https://transfer.sh",
+      "max_days": 7
+    },
+    "s3": {
+      "endpoint": "",
+      "bucket": "",
+      "prefix": "cc-go-on",
+      "access_key": "",
+      "secret_key": ""
+    }
+  },
+  "encryption": {
+    "method": "aes-256-cbc",
+    "key_source": "prompt"
+  }
+}
