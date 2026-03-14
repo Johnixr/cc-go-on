@@ -136,11 +136,21 @@ with open('$f', 'w') as fh:
     source "$adapter_script"
     adapter_import "$extract_dir/session" "$target_project_path" "$metadata"
 
+    # 8. Branch check — inform, never block
+    local current_branch=""
+    current_branch=$(cd "$target_project_path" && git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+
     echo ""
     log_info "Session imported successfully!"
-    echo -e "  ${CYAN}Branch:${NC}  $source_git_branch"
+
+    if [[ -n "$source_git_branch" && -n "$current_branch" && "$source_git_branch" != "$current_branch" ]]; then
+        echo -e "  ${YELLOW}Branch:${NC}  session was on ${CYAN}$source_git_branch${NC}, you're on ${CYAN}$current_branch${NC}"
+    elif [[ -n "$current_branch" ]]; then
+        echo -e "  ${CYAN}Branch:${NC}  $current_branch"
+    fi
+
     echo -e "  ${CYAN}Source:${NC}  $source_adapter"
     echo ""
-    echo -e "  Use ${GREEN}claude --resume${NC} or ${GREEN}/resume${NC} to load the session"
+    echo -e "  Use ${GREEN}/resume${NC} to load the session"
     echo ""
 }
