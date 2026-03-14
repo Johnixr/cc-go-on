@@ -27,7 +27,7 @@ Or paste this to your AI assistant:
 
 1. Clones to `~/.cc-go-on/`
 2. Detects your AI tools (Claude Code, Codex, Cursor, etc.)
-3. For supported tools: installs native integration (e.g. `/share` skill for Claude Code)
+3. For supported tools: installs native integration (e.g. `/ccgoon` skill for Claude Code)
 4. Creates default config at `~/.cc-go-on/config.json`
 
 ### Uninstall
@@ -38,21 +38,21 @@ Or paste this to your AI assistant:
 
 ## Usage
 
-### Claude Code (via /share skill)
+### Claude Code (via /ccgoon skill)
 
 ```
-/share                                    # Export current session
-/share ccgo_aHR0cHM6Ly90cmFuc2Zlci5zaC8...  # Import a shared session
+/ccgoon                                   # Export current session
+/ccgoonccgo_aHR0cHM6Ly90cmFuc2Zlci5zaC8...  # Import a shared session
 ```
 
 ### CLI (works with any tool)
 
 ```bash
 # Export — generates a shareable snippet with embedded key
-~/.cc-go-on/share.sh export
+~/.cc-go-on/ccgoon.sh export
 
 # Import
-~/.cc-go-on/share.sh import ccgo_eyJ1Ijoi...
+~/.cc-go-on/ccgoon.sh import ccgo_eyJ1Ijoi...
 ```
 
 No passphrase needed. A random encryption key is auto-generated and embedded in the token.
@@ -77,7 +77,7 @@ After export, cc-go-on generates a shareable snippet you can copy-paste to your 
 ```
 I'm sharing an AI coding session with you via cc-go-on.
 Install (if first time): curl -fsSL https://raw.githubusercontent.com/Johnixr/cc-go-on/main/install.sh | bash
-Then load the session: /share ccgo_eyJ1IjoiaHR0cHM6Ly90cmFuc2Zlci5zaC8...
+Then load the session: /ccgoonccgo_eyJ1IjoiaHR0cHM6Ly90cmFuc2Zlci5zaC8...
 ```
 
 Your teammate pastes this into their AI tool — it handles install, download, decrypt, and import automatically.
@@ -89,14 +89,14 @@ Default: [transfer.sh](https://transfer.sh) — zero config, files auto-expire i
 You can switch to S3-compatible storage (Cloudflare R2, AWS S3, MinIO, etc.):
 
 ```bash
-~/.cc-go-on/share.sh config storage s3
-~/.cc-go-on/share.sh config storage_options.s3.endpoint https://xxx.r2.cloudflarestorage.com
-~/.cc-go-on/share.sh config storage_options.s3.bucket my-bucket
+~/.cc-go-on/ccgoon.sh config storage s3
+~/.cc-go-on/ccgoon.sh config storage_options.s3.endpoint https://xxx.r2.cloudflarestorage.com
+~/.cc-go-on/ccgoon.sh config storage_options.s3.bucket my-bucket
 ```
 
 Or self-host transfer.sh:
 ```bash
-~/.cc-go-on/share.sh config storage_options.transfer_sh.host https://your-server.com
+~/.cc-go-on/ccgoon.sh config storage_options.transfer_sh.host https://your-server.com
 ```
 
 ### Encryption
@@ -119,7 +119,7 @@ This happens transparently — just import and go.
 
 | Tool | Status | Notes |
 |------|--------|-------|
-| **Claude Code** | Supported | Full export/import with `/share` skill |
+| **Claude Code** | Supported | Full export/import with `/ccgoon` skill |
 | **Codex** | Planned | Contributions welcome |
 | **Cursor** | Planned | Contributions welcome |
 | **Windsurf** | Planned | Contributions welcome |
@@ -131,7 +131,7 @@ The adapter interface is simple — see [Adding an Adapter](#adding-an-adapter) 
 
 ```
 cc-go-on/
-├── share.sh                 # CLI entry point
+├── ccgoon.sh                 # CLI entry point
 ├── core/
 │   ├── common.sh            # Config, utils, dependency checks
 │   ├── crypto.sh            # AES-256-CBC encrypt/decrypt
@@ -142,7 +142,7 @@ cc-go-on/
 │       └── s3.sh            # S3-compatible backend
 ├── adapters/
 │   └── claude-code/         # Claude Code adapter
-│       ├── SKILL.md         # /share skill definition
+│       ├── SKILL.md         # /ccgoon skill definition
 │       ├── export.sh        # Read CC session data
 │       └── import.sh        # Write CC session data + register
 ├── config/

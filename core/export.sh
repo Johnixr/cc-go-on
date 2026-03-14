@@ -104,6 +104,6 @@ generate_share_snippet() {
     cat <<SNIPPET
 I'm sharing an AI coding session with you via cc-go-on.
 Install (if first time): curl -fsSL https://raw.githubusercontent.com/Johnixr/cc-go-on/main/install.sh | bash
-Then load the session: /share $token
+Then load the session: /ccgoon $token
 SNIPPET
 }
