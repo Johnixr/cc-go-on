@@ -2,7 +2,7 @@
 
 **Share & resume AI coding sessions across tools.**
 
-Export your AI coding session, encrypt it, share a token — your teammate picks up right where you left off. Works with **any AI coding assistant**: Claude Code, Codex, Cursor, Windsurf, Aider, and more.
+Export your AI coding session, encrypt it, share a token — your teammate picks up right where you left off. Works with **any AI coding assistant**: Claude Code, Codex, Cursor, Windsurf, Droid, and more.
 
 > **cc-go-on** is not tied to any single AI tool. It's a universal session-sharing layer. Claude Code is the first supported adapter — others are open for community contribution.
 
@@ -118,7 +118,7 @@ This happens transparently — just import and go.
 | **Codex** | Planned | Contributions welcome |
 | **Cursor** | Planned | Contributions welcome |
 | **Windsurf** | Planned | Contributions welcome |
-| **Aider** | Planned | Contributions welcome |
+| **Droid** | Planned | Contributions welcome |
 
 The adapter interface is simple — see [Adding an Adapter](#adding-an-adapter) to contribute.
 

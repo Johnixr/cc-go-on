@@ -2,7 +2,7 @@
 
 **跨工具的 AI 编程会话分享与接力。**
 
-一行命令导出你的 AI 编程会话，加密分享给同事，对方一行命令导入，直接继续。支持 **Claude Code、Codex、Cursor、Windsurf、Aider** 等任意 AI 编程工具。
+一行命令导出你的 AI 编程会话，加密分享给同事，对方一行命令导入，直接继续。支持 **Claude Code、Codex、Cursor、Windsurf、Droid** 等任意 AI 编程工具。
 
 > cc-go-on 不绑定任何特定 AI 工具。它是一个通用的 session 分享层。Claude Code 是第一个支持的适配器，其他工具欢迎社区贡献。
 
@@ -120,7 +120,7 @@ curl -fsSL https://raw.githubusercontent.com/Johnixr/cc-go-on/main/install.sh | 
 | **Codex** | 计划中 | 欢迎贡献 |
 | **Cursor** | 计划中 | 欢迎贡献 |
 | **Windsurf** | 计划中 | 欢迎贡献 |
-| **Aider** | 计划中 | 欢迎贡献 |
+| **Droid** | 计划中 | 欢迎贡献 |
 
 ## 项目结构
 
