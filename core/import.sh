@@ -6,41 +6,59 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 source "$SCRIPT_DIR/crypto.sh"
 
-# Decode token to URL
+# Decode token to URL and key
+# Token format: ccgo_ + base64url( {"u":"<url>","k":"<key>"} )
 decode_token() {
     local token="$1"
-    # Strip ccgo_ prefix
     local encoded="${token#ccgo_}"
-    # Restore base64 padding and chars
-    local padded="$encoded"
-    padded="${padded//-/+}"
-    padded="${padded//_//}"
-    # Add padding
-    local mod=$(( ${#padded} % 4 ))
-    if [[ $mod -eq 2 ]]; then padded="${padded}==";
-    elif [[ $mod -eq 3 ]]; then padded="${padded}="; fi
-    echo -n "$padded" | base64 -d 2>/dev/null
+
+    python3 -c "
+import base64, json, sys
+encoded = '$encoded'
+# Restore base64 padding
+padding = 4 - len(encoded) % 4
+if padding != 4:
+    encoded += '=' * padding
+try:
+    payload = base64.urlsafe_b64decode(encoded).decode()
+    data = json.loads(payload)
+    print(data.get('u', ''))
+    print(data.get('k', ''))
+except Exception as e:
+    print('', file=sys.stderr)
+    print('', file=sys.stderr)
+    sys.exit(1)
+"
 }
 
 import_session() {
     local token_or_url="$1"
     local adapter="$2"
     local project_dir="${3:-.}"
-    local passphrase="${4:-}"
 
     check_deps || return 1
     ensure_config
     ensure_temp
 
-    # 1. Resolve URL from token
-    local url
+    # 1. Resolve URL and key from token
+    local url=""
+    local key=""
+
     if [[ "$token_or_url" == ccgo_* ]]; then
-        url=$(decode_token "$token_or_url")
-        log_info "Decoded token → $url"
+        local decoded
+        decoded=$(decode_token "$token_or_url")
+        url=$(echo "$decoded" | head -1)
+        key=$(echo "$decoded" | tail -1)
+        if [[ -z "$url" || -z "$key" ]]; then
+            log_error "Invalid token"
+            return 1
+        fi
+        log_info "Token decoded"
     elif [[ "$token_or_url" == http* || "$token_or_url" == s3://* ]]; then
-        url="$token_or_url"
+        log_error "Direct URLs no longer supported. Use a ccgo_ token."
+        return 1
     else
-        log_error "Invalid token or URL: $token_or_url"
+        log_error "Invalid token: $token_or_url"
         return 1
     fi
 
@@ -58,30 +76,12 @@ import_session() {
         return 1
     }
 
-    # 3. Decrypt
+    # 3. Decrypt with embedded key
     local archive="$CCGO_TEMP/session.tar.gz"
-    local key_file=""
-
-    if [[ -z "$passphrase" ]]; then
-        key_file=$(find_project_key "$project_dir" 2>/dev/null || true)
-    fi
-
-    if [[ -n "$key_file" ]]; then
-        log_info "Using project key: $key_file"
-        decrypt_file "$encrypted" "$archive" "" "$key_file" || {
-            log_error "Decryption failed — wrong key?"
-            return 1
-        }
-    elif [[ -n "$passphrase" ]]; then
-        decrypt_file "$encrypted" "$archive" "$passphrase" || {
-            log_error "Decryption failed — wrong passphrase?"
-            return 1
-        }
-    else
-        log_error "No passphrase provided and no .cc-go-on-key found"
+    decrypt_file "$encrypted" "$archive" "$key" || {
+        log_error "Decryption failed — token may be corrupted"
         return 1
-    fi
-
+    }
     log_info "Decrypted successfully"
 
     # 4. Extract
@@ -104,18 +104,15 @@ import_session() {
     source_git_branch=$(python3 -c "import json; print(json.load(open('$metadata')).get('git',{}).get('branch',''))")
 
     log_info "Source: $source_adapter | branch: $source_git_branch"
-    log_info "Source path: $source_project_path"
 
     local target_project_path
     target_project_path="$(cd "$project_dir" && pwd)"
 
     # 6. Remap paths in session files
     if [[ "$source_project_path" != "$target_project_path" ]]; then
-        log_info "Remapping paths: $source_project_path → $target_project_path"
-        find "$extract_dir/session" -type f -name "*.jsonl" -o -name "*.json" | while read -r f; do
-            # Use python for safe replacement (handles special chars in paths)
+        log_info "Remapping paths"
+        find "$extract_dir/session" -type f \( -name "*.jsonl" -o -name "*.json" \) | while read -r f; do
             python3 -c "
-import sys
 with open('$f', 'r') as fh:
     content = fh.read()
 content = content.replace('$source_project_path', '$target_project_path')

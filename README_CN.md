@@ -48,20 +48,19 @@ curl -fsSL https://raw.githubusercontent.com/Johnixr/cc-go-on/main/install.sh | 
 ### 命令行（适用于任何工具）
 
 ```bash
-# 导出
-~/.cc-go-on/share.sh export -a claude-code -p "我的密码"
+# 导出 — 自动生成加密密钥，输出可分享的文字片段
+~/.cc-go-on/share.sh export
 
 # 导入
-~/.cc-go-on/share.sh import ccgo_aHR0cHM6Ly90... -a claude-code -p "我的密码"
+~/.cc-go-on/share.sh import ccgo_eyJ1Ijoi...
 ```
 
-`-a` 参数指定适配器：`claude-code`、`codex`、`cursor`，或任何社区适配器。
+不需要设置密码。每次导出自动生成随机密钥，嵌入 token 中。
 
 ### 参数说明
 
 | 参数 | 说明 |
 |------|------|
-| `-p, --passphrase` | 加密密码 |
 | `-s, --session <id>` | 会话 ID（默认：最新的） |
 | `-a, --adapter <name>` | AI 工具适配器（默认：自动检测） |
 | `-d, --project <dir>` | 项目目录（默认：当前目录） |
@@ -69,9 +68,19 @@ curl -fsSL https://raw.githubusercontent.com/Johnixr/cc-go-on/main/install.sh | 
 ## 工作原理
 
 ```
-导出：Session 文件 → tar.gz 压缩 → AES-256-CBC 加密 → 上传云端 → 生成 token
-导入：token → 下载 → 解密 → 路径重映射 → 注册到本地 → 继续对话
+导出：Session 文件 → tar.gz 压缩 → 随机密钥 → AES-256 加密 → 上传 → token（含密钥）
+导入：token → 提取密钥和 URL → 下载 → 解密 → 路径重映射 → 注册 → 继续对话
 ```
+
+导出后会生成一段可直接复制的分享文字：
+
+```
+I'm sharing an AI coding session with you via cc-go-on.
+Install (if first time): curl -fsSL https://raw.githubusercontent.com/Johnixr/cc-go-on/main/install.sh | bash
+Then load the session: /share ccgo_eyJ1IjoiaHR0cHM6Ly90cmFuc2Zlci5zaC8...
+```
+
+把这段文字发给同事，对方粘贴到 AI 工具里，自动完成安装、下载、解密、导入。
 
 ### 存储
 
@@ -95,12 +104,9 @@ curl -fsSL https://raw.githubusercontent.com/Johnixr/cc-go-on/main/install.sh | 
 
 ### 加密
 
-两种模式：
+每次导出自动生成随机 AES-256 密钥，嵌入 token 中。不需要记密码，也不需要单独传密钥。
 
-1. **项目密钥**（团队使用）：在项目根目录创建 `.cc-go-on-key` 文件，团队成员通过安全渠道共享此文件，记得加入 `.gitignore`
-2. **手动密码**（临时使用）：通过 `-p` 参数传入，密码需另行告知对方（IM、口头等）
-
-所有加密使用 AES-256-CBC + PBKDF2（10 万次迭代）。
+Token 就是密钥——拿到 token 就能解密。请通过可信渠道（私信、Slack 等）分享 token。
 
 ### 路径重映射
 

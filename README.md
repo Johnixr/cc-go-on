@@ -48,20 +48,19 @@ Or paste this to your AI assistant:
 ### CLI (works with any tool)
 
 ```bash
-# Export
-~/.cc-go-on/share.sh export -a claude-code -p "my-secret"
+# Export — generates a shareable snippet with embedded key
+~/.cc-go-on/share.sh export
 
 # Import
-~/.cc-go-on/share.sh import ccgo_aHR0cHM6Ly90... -a claude-code -p "my-secret"
+~/.cc-go-on/share.sh import ccgo_eyJ1Ijoi...
 ```
 
-The `-a` flag specifies the adapter. Use `claude-code`, `codex`, `cursor`, or any community adapter.
+No passphrase needed. A random encryption key is auto-generated and embedded in the token.
 
 ### Options
 
 | Flag | Description |
 |------|-------------|
-| `-p, --passphrase` | Encryption passphrase |
 | `-s, --session <id>` | Session ID (default: latest) |
 | `-a, --adapter <name>` | AI tool adapter (default: auto-detect) |
 | `-d, --project <dir>` | Project directory (default: current) |
@@ -69,9 +68,19 @@ The `-a` flag specifies the adapter. Use `claude-code`, `codex`, `cursor`, or an
 ## How It Works
 
 ```
-Export:  Session files → tar.gz → AES-256-CBC encrypt → upload → token
-Import: token → download → decrypt → path remap → register → resume
+Export:  Session files → tar.gz → random key → AES-256 encrypt → upload → token (with key)
+Import: token → extract key & URL → download → decrypt → path remap → register → resume
 ```
+
+After export, cc-go-on generates a shareable snippet you can copy-paste to your teammate:
+
+```
+I'm sharing an AI coding session with you via cc-go-on.
+Install (if first time): curl -fsSL https://raw.githubusercontent.com/Johnixr/cc-go-on/main/install.sh | bash
+Then load the session: /share ccgo_eyJ1IjoiaHR0cHM6Ly90cmFuc2Zlci5zaC8...
+```
+
+Your teammate pastes this into their AI tool — it handles install, download, decrypt, and import automatically.
 
 ### Storage
 
@@ -92,13 +101,9 @@ Or self-host transfer.sh:
 
 ### Encryption
 
-Two modes:
+Every export auto-generates a random AES-256 key. The key is embedded in the token — no passwords to remember or share separately.
 
-1. **Project key** (team use): Create `.cc-go-on-key` in your project root. Share this file with your team via secure channel. Add it to `.gitignore`.
-
-2. **Passphrase** (ad-hoc): Pass `-p` flag. Share the passphrase separately.
-
-All encryption uses AES-256-CBC with PBKDF2 (100k iterations).
+The token IS the secret. Share it through trusted channels (DM, Slack, etc). Anyone with the token can decrypt the session.
 
 ### Path Remapping
 

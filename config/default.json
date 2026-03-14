@@ -8,13 +8,7 @@
     "s3": {
       "endpoint": "",
       "bucket": "",
-      "prefix": "cc-go-on",
-      "access_key": "",
-      "secret_key": ""
+      "prefix": "cc-go-on"
     }
-  },
-  "encryption": {
-    "method": "aes-256-cbc",
-    "key_source": "prompt"
   }
 }

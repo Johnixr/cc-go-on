@@ -112,23 +112,6 @@ print(json.dumps(info))
 "
 }
 
-# --- Project key ---
-
-find_project_key() {
-    local dir="${1:-.}"
-    # Walk up from dir looking for .cc-go-on-key
-    local current
-    current="$(cd "$dir" && pwd)"
-    while [[ "$current" != "/" ]]; do
-        if [[ -f "$current/.cc-go-on-key" ]]; then
-            echo "$current/.cc-go-on-key"
-            return 0
-        fi
-        current="$(dirname "$current")"
-    done
-    return 1
-}
-
 # --- Adapter detection ---
 
 detect_adapters() {

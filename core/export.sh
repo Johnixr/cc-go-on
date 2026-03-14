@@ -10,7 +10,6 @@ export_session() {
     local adapter="$1"
     local session_dir="$2"       # directory containing session files to package
     local project_dir="${3:-.}"  # git project directory
-    local passphrase="${4:-}"
 
     check_deps || return 1
     ensure_config
@@ -48,44 +47,23 @@ json.dump(meta, open('$pack_dir/metadata.json', 'w'), indent=2)
     archive_size=$(wc -c < "$archive" | tr -d ' ')
     log_info "Packaged session: $(( archive_size / 1024 )) KB"
 
-    # 4. Encrypt
+    # 4. Generate random key and encrypt
+    local key
+    key=$(generate_key)
     local encrypted="$CCGO_TEMP/session.tar.gz.enc"
-    local key_file=""
-
-    if [[ -z "$passphrase" ]]; then
-        key_file=$(find_project_key "$project_dir" 2>/dev/null || true)
-    fi
-
-    if [[ -n "$key_file" ]]; then
-        log_info "Using project key: $key_file"
-        encrypt_file "$archive" "$encrypted" "" "$key_file"
-    elif [[ -n "$passphrase" ]]; then
-        encrypt_file "$archive" "$encrypted" "$passphrase"
-    else
-        log_error "No passphrase provided and no .cc-go-on-key found in project"
-        log_error "Usage: share export --passphrase <passphrase>"
-        log_error "   or: create .cc-go-on-key in your project root"
-        return 1
-    fi
-
-    log_info "Encrypted successfully"
+    encrypt_file "$archive" "$encrypted" "$key"
+    log_info "Encrypted with random key"
 
     # 5. Upload
     local storage_backend
     storage_backend="$(config_get 'storage' 'transfer.sh')"
 
-    local storage_script="$SCRIPT_DIR/storage/${storage_backend//./_}.sh"
-    if [[ ! -f "$storage_script" ]]; then
-        # Normalize: "transfer.sh" -> "transfer_sh"
-        storage_script="$SCRIPT_DIR/storage/$(echo "$storage_backend" | tr '.' '_').sh"
-    fi
-
+    local storage_script="$SCRIPT_DIR/storage/$(echo "$storage_backend" | tr '.' '_').sh"
     if [[ ! -f "$storage_script" ]]; then
         log_error "Unknown storage backend: $storage_backend"
         return 1
     fi
 
-    # Re-source to get the right storage functions
     source "$storage_script"
 
     log_info "Uploading to $storage_backend ..."
@@ -97,24 +75,35 @@ json.dump(meta, open('$pack_dir/metadata.json', 'w'), indent=2)
         return 1
     fi
 
-    # 6. Generate token (base64 encoded URL with prefix)
+    # 6. Generate token: base64url( JSON{"u": url, "k": key} )
     local token
-    token="ccgo_$(echo -n "$url" | base64 | tr -d '\n' | tr '+/' '-_' | tr -d '=')"
+    token="ccgo_$(python3 -c "
+import json, base64
+payload = json.dumps({'u': '$url', 'k': '$key'}, separators=(',',':'))
+encoded = base64.urlsafe_b64encode(payload.encode()).decode().rstrip('=')
+print(encoded)
+")"
+
+    # 7. Generate shareable snippet
+    local snippet
+    snippet=$(generate_share_snippet "$token")
 
     echo ""
     log_info "Session shared successfully!"
     echo ""
-    echo -e "  ${CYAN}Token:${NC}  $token"
-    echo -e "  ${CYAN}URL:${NC}    $url"
-    if [[ -n "$key_file" ]]; then
-        echo -e "  ${CYAN}Key:${NC}    project key (.cc-go-on-key)"
-    else
-        echo -e "  ${CYAN}Key:${NC}    passphrase (share it securely)"
-    fi
+    echo -e "${CYAN}--- Copy everything below and send to your teammate ---${NC}"
     echo ""
-    echo -e "  Recipient command: ${GREEN}/share $token${NC}"
+    echo "$snippet"
     echo ""
+    echo -e "${CYAN}------------------------------------------------------${NC}"
+    echo ""
+}
 
-    # Return token for programmatic use
-    echo "$token"
+generate_share_snippet() {
+    local token="$1"
+    cat <<SNIPPET
+I'm sharing an AI coding session with you via cc-go-on.
+Install (if first time): curl -fsSL https://raw.githubusercontent.com/Johnixr/cc-go-on/main/install.sh | bash
+Then load the session: /share $token
+SNIPPET
 }

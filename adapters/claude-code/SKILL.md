@@ -1,64 +1,65 @@
 ---
 name: share
-description: Share and resume AI coding sessions with teammates. Export current session, encrypt, upload, and generate a token. Or import a shared session by token.
+description: Share and resume AI coding sessions with teammates. Export current session with one command, get a shareable snippet. Or import a shared session by pasting the snippet.
 allowed-tools: Bash, Read, Write, Grep, Glob
 argument-hint: [export | <token>]
 ---
 
 # /share — Session Sharing
 
-You are the session sharing assistant. Help the user export or import AI coding sessions.
+You are the session sharing assistant for cc-go-on. Help the user export or import AI coding sessions.
 
 ## Detect Intent
 
 - `/share` or `/share export` → Export current session
-- `/share <token>` (starts with `ccgo_` or `http`) → Import a session
+- `/share ccgo_...` (token starting with `ccgo_`) → Import a session
 - `/share config` → Show or modify config
+- User pastes a message containing `ccgo_` token and mentions cc-go-on → Import
 
 ## Export Flow
 
 1. Determine the current project directory (use `$CWD` or git root)
-2. Ask the user for a passphrase if no `.cc-go-on-key` file exists in the project. Keep it simple — one question, not a wizard.
-3. Run the export:
+2. Run the export (no passphrase needed — a random key is auto-generated and embedded in the token):
 
 ```bash
-bash ~/.cc-go-on/share.sh export --project <project_dir> --passphrase "<passphrase>"
+bash ~/.cc-go-on/share.sh export --project <project_dir>
 ```
 
-4. Show the user:
-   - The generated token (starts with `ccgo_`)
-   - Instructions: "Send this token to your teammate. They run `/share <token>` to load your session."
-   - If using passphrase (not project key): remind them to share the passphrase separately
+3. The script outputs a shareable snippet between the dashed lines. Show it to the user and tell them:
+   "Copy the text above and send it to your teammate. They just paste it into their AI tool and it handles the rest — install, download, decrypt, everything."
 
 ## Import Flow
 
-1. The user provides a token (from `/share <token>`)
-2. Ask for passphrase if no `.cc-go-on-key` in the project
-3. Run the import:
+When the user pastes a token (starts with `ccgo_`), or pastes a snippet that contains a `ccgo_` token:
+
+1. Extract the token from the pasted text (find the string starting with `ccgo_`)
+2. Run the import:
 
 ```bash
-bash ~/.cc-go-on/share.sh import "<token>" --project <project_dir> --passphrase "<passphrase>"
+bash ~/.cc-go-on/share.sh import "<token>" --project <project_dir>
 ```
 
-4. After success, tell the user:
-   - Session is now available locally
-   - They can use `/resume` to load and continue the conversation
+3. After success, tell the user the session is ready and they can use `/resume` to load it.
+
+## If cc-go-on Is Not Installed
+
+If `~/.cc-go-on/share.sh` does not exist, install it first:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Johnixr/cc-go-on/main/install.sh | bash
+```
+
+Then proceed with the export or import.
 
 ## Config
 
 Show config: `bash ~/.cc-go-on/share.sh config`
 Set value: `bash ~/.cc-go-on/share.sh config <key> <value>`
 
-Example: change storage backend:
-```bash
-bash ~/.cc-go-on/share.sh config storage s3
-bash ~/.cc-go-on/share.sh config storage_options.s3.endpoint https://xxx.r2.cloudflarestorage.com
-bash ~/.cc-go-on/share.sh config storage_options.s3.bucket my-bucket
-```
-
 ## Important
 
 - ALWAYS ask for confirmation before exporting (the user should know what's being shared)
-- NEVER display or log the actual passphrase in your response after the user provides it
-- If export/import fails, read the error output and help the user troubleshoot
+- Encryption is automatic — a random key is generated per export and embedded in the token
+- The token IS the secret — anyone with the token can decrypt. Remind users to share it through trusted channels
+- If export/import fails, read the error output and help troubleshoot
 - The tool is installed at `~/.cc-go-on/`
