@@ -76,15 +76,7 @@ bash ~/.cc-go-on/ccgoon.sh import "<token>" --project <project_dir>
 
 ### Cross-tool import
 
-The imported session may come from a different AI tool (Cursor, Codex, etc.). The session format is preserved as-is — cc-go-on does not convert between formats during transfer.
-
-If the user asks to view or continue a session from a different tool, refer to the format reference at `~/.cc-go-on/docs/session-formats.md` for field mappings. You can read the JSONL directly and present the conversation to the user, translating the format differences on the fly:
-
-- **Claude Code session**: `type` field (`user`/`assistant`), content blocks with `text`/`thinking`/`tool_use`
-- **Cursor session**: `role` field, user text in `<user_query>` tags, no timestamps
-- **Codex session**: event-based (`session_meta`/`event_msg`/`response_item`), `output_text` blocks, `exec_command`/`apply_patch` tools
-
-You understand these formats — if the imported session is from another tool, read the JSONL and present it intelligibly. No conversion script is needed; just interpret the data.
+If the imported session comes from a different tool (Cursor, Codex), cc-go-on automatically converts it to Claude Code format during import. The converter normalizes message structure, tool call names, and cleans system tags. No manual steps needed.
 
 ## If cc-go-on Is Not Installed
 

@@ -108,7 +108,30 @@ import_session() {
     local target_project_path
     target_project_path="$(cd "$project_dir" && pwd)"
 
-    # 6. Remap paths in session files
+    # 6. Convert format if source != target adapter
+    if [[ "$source_adapter" != "$adapter" ]]; then
+        log_info "Converting $source_adapter → $adapter format"
+        local converter="$SCRIPT_DIR/convert.py"
+        find "$extract_dir/session" -maxdepth 1 -name "*.jsonl" -type f | while read -r jsonl_file; do
+            local conv_result
+            conv_result=$(python3 "$converter" "$jsonl_file" "$jsonl_file.tmp" --target "$adapter" 2>&1)
+            local conv_format
+            conv_format=$(echo "$conv_result" | grep "^format:" | cut -d: -f2)
+            local conv_action
+            conv_action=$(echo "$conv_result" | grep "^action:" | cut -d: -f2)
+
+            if [[ "$conv_action" == "converted" ]]; then
+                mv "$jsonl_file.tmp" "$jsonl_file"
+                local conv_count
+                conv_count=$(echo "$conv_result" | grep "^messages:" | cut -d: -f2)
+                log_info "Converted $jsonl_file ($conv_format → $adapter, $conv_count messages)"
+            else
+                rm -f "$jsonl_file.tmp"
+            fi
+        done
+    fi
+
+    # 7. Remap paths in session files
     if [[ "$source_project_path" != "$target_project_path" ]]; then
         log_info "Remapping paths"
         find "$extract_dir/session" -type f \( -name "*.jsonl" -o -name "*.json" \) | while read -r f; do
@@ -122,7 +145,7 @@ with open('$f', 'w') as fh:
         done
     fi
 
-    # 7. Call adapter to install
+    # 8. Call adapter to install
     local adapter_script="$SCRIPT_DIR/../adapters/$adapter/import.sh"
     if [[ ! -f "$adapter_script" ]]; then
         log_error "Adapter not found: $adapter"
@@ -133,7 +156,7 @@ with open('$f', 'w') as fh:
     source "$adapter_script"
     adapter_import "$extract_dir/session" "$target_project_path" "$metadata"
 
-    # 8. Branch check — inform, never block
+    # 9. Branch check — inform, never block
     local current_branch=""
     current_branch=$(cd "$target_project_path" && git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
 
