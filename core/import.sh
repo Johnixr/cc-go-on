@@ -150,7 +150,17 @@ with open('$f', 'w') as fh:
     fi
 
     echo -e "  ${CYAN}Source:${NC}  $source_adapter"
-    echo ""
-    echo -e "  Use ${GREEN}/resume${NC} to load the session"
+
+    # Adapter-specific resume hint
+    local resume_hint=""
+    case "$adapter" in
+        claude-code) resume_hint="/resume" ;;
+        codex)       resume_hint="codex --resume" ;;
+        *)           resume_hint="" ;;
+    esac
+    if [[ -n "$resume_hint" ]]; then
+        echo ""
+        echo -e "  Next: ${GREEN}$resume_hint${NC} to load the session"
+    fi
     echo ""
 }
