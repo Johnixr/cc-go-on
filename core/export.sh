@@ -84,26 +84,11 @@ encoded = base64.urlsafe_b64encode(payload.encode()).decode().rstrip('=')
 print(encoded)
 ")"
 
-    # 7. Generate shareable snippet
-    local snippet
-    snippet=$(generate_share_snippet "$token")
-
+    # 7. Output result
     echo ""
     log_info "Session shared successfully!"
     echo ""
-    echo -e "${CYAN}--- Copy everything below and send to your teammate ---${NC}"
+    echo "CCGO_TOKEN=$token"
+    echo "CCGO_URL=$url"
     echo ""
-    echo "$snippet"
-    echo ""
-    echo -e "${CYAN}------------------------------------------------------${NC}"
-    echo ""
-}
-
-generate_share_snippet() {
-    local token="$1"
-    cat <<SNIPPET
-I'm sharing an AI coding session with you via cc-go-on (https://github.com/Johnixr/cc-go-on).
-If you already have cc-go-on installed, run: /ccgoon $token
-If not, install first: curl -fsSL https://raw.githubusercontent.com/Johnixr/cc-go-on/main/install.sh | bash
-SNIPPET
 }
