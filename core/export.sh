@@ -5,6 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 source "$SCRIPT_DIR/crypto.sh"
+source "$SCRIPT_DIR/redact.sh"
 
 export_session() {
     local adapter="$1"
@@ -21,7 +22,14 @@ export_session() {
     # 1. Copy session data
     cp -r "$session_dir" "$pack_dir/session"
 
-    # 2. Generate metadata
+    # 2. Redact sensitive information
+    local redact_count
+    redact_count=$(redact_session_dir "$pack_dir/session")
+    if [[ "$redact_count" -gt 0 ]]; then
+        log_info "Redacted $redact_count sensitive patterns"
+    fi
+
+    # 3. Generate metadata
     local git_data
     git_data=$(git_info "$project_dir")
 
@@ -39,7 +47,7 @@ meta = {
 json.dump(meta, open('$pack_dir/metadata.json', 'w'), indent=2)
 "
 
-    # 3. Create tar.gz
+    # 4. Create tar.gz
     local archive="$CCGO_TEMP/session.tar.gz"
     tar -czf "$archive" -C "$pack_dir" .
 
@@ -47,14 +55,14 @@ json.dump(meta, open('$pack_dir/metadata.json', 'w'), indent=2)
     archive_size=$(wc -c < "$archive" | tr -d ' ')
     log_info "Packaged session: $(( archive_size / 1024 )) KB"
 
-    # 4. Generate random key and encrypt
+    # 5. Generate random key and encrypt
     local key
     key=$(generate_key)
     local encrypted="$CCGO_TEMP/session.tar.gz.enc"
     encrypt_file "$archive" "$encrypted" "$key"
     log_info "Encrypted with random key"
 
-    # 5. Upload
+    # 6. Upload
     local storage_backend
     storage_backend="$(config_get 'storage' 'transfer.sh')"
 
@@ -75,7 +83,7 @@ json.dump(meta, open('$pack_dir/metadata.json', 'w'), indent=2)
         return 1
     fi
 
-    # 6. Generate token: base64url( JSON{"u": url, "k": key} )
+    # 7. Generate token: base64url( JSON{"u": url, "k": key} )
     local token
     token="ccgo_$(python3 -c "
 import json, base64
@@ -84,7 +92,7 @@ encoded = base64.urlsafe_b64encode(payload.encode()).decode().rstrip('=')
 print(encoded)
 ")"
 
-    # 7. Output result
+    # 8. Output result
     echo ""
     log_info "Session shared successfully!"
     echo ""

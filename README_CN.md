@@ -136,16 +136,21 @@ cc-go-on/
 ├── core/
 │   ├── common.sh            # 配置、工具函数、依赖检查
 │   ├── crypto.sh            # AES-256-CBC 加密/解密
-│   ├── export.sh            # 打包 → 加密 → 上传
-│   ├── import.sh            # 下载 → 解密 → 安装
+│   ├── redact.sh            # 敏感信息过滤（API key、token 等）
+│   ├── export.sh            # 打包 → 过滤 → 加密 → 上传
+│   ├── import.sh            # 下载 → 解密 → 路径重映射 → 安装
 │   └── storage/
 │       ├── transfer_sh.sh   # transfer.sh 存储后端（默认）
 │       └── s3.sh            # S3 兼容存储后端
 ├── adapters/
-│   └── claude-code/         # Claude Code 适配器
-│       ├── SKILL.md         # /ccgoon 命令定义
-│       ├── export.sh        # 读取 CC 会话数据
-│       └── import.sh        # 写入 CC 会话数据并注册
+│   ├── claude-code/         # Claude Code 适配器
+│   │   ├── SKILL.md         # /ccgoon 命令定义
+│   │   ├── export.sh        # 读取 CC 会话数据
+│   │   └── import.sh        # 写入 CC 会话数据并注册
+│   ├── cursor/              # Cursor 适配器（stub）
+│   └── codex/               # Codex 适配器（stub）
+├── docs/
+│   └── session-formats.md   # CC/Cursor/Codex 会话格式参考
 ├── config/
 │   └── default.json         # 默认配置
 └── install.sh               # 一键安装脚本
@@ -160,15 +165,41 @@ cc-go-on/
 
 参考 `adapters/claude-code/` 的实现。欢迎提交 PR！
 
-## 相关项目
+## 对比
 
-以下项目专注于 Claude Code 会话的查看和分享：
+|  | cc-go-on | [claudebin](https://github.com/wunderlabs-dev/claudebin.com) | [claude-replay](https://github.com/es617/claude-replay) | [ccshare](https://github.com/insomenia/ccshare) |
+|--|---------|-----------|--------------|---------|
+| **加密** | AES-256 随机密钥 | 无 | 无 | 无 |
+| **敏感信息过滤** | 自动（API key、token、密码等） | 仅路径脱敏 | 正则匹配，可关闭 | 无 |
+| **跨工具** | CC + Cursor + Codex（适配器） | 仅 CC | CC + Cursor + Codex（只读） | 仅 CC |
+| **继续对话** | 支持（导入后 /resume） | 不支持 | 不支持 | 部分 |
+| **需要服务器** | 不需要（默认 transfer.sh） | Supabase | 不需要 | ccshare.cc |
+| **输出** | 加密文件 + token | 托管链接 | 自包含 HTML | 托管链接 |
 
-- [claudebin.com](https://github.com/wunderlabs-dev/claudebin.com) — 导出会话到托管 Viewer，支持 resume
-- [claude-code-share-plugin](https://github.com/PostHog/claude-code-share-plugin) — 转为 Markdown 并推送到 GitHub
-- [claude-replay](https://github.com/es617/claude-replay) — 自包含的 HTML 回放
+cc-go-on 专注于**加密团队交接**和**跨工具可移植性**，而非查看。
 
-**cc-go-on** 的不同之处在于：专注**跨工具可移植性**和**加密团队交接**，而不仅仅是查看。
+## 安全
+
+### 敏感信息自动过滤
+
+上传前，cc-go-on 自动扫描并脱敏以下内容：
+
+- PEM 私钥（RSA、EC、DSA、OpenSSH）
+- AWS 访问密钥（`AKIA...`）
+- API 密钥（`sk-ant-...`、`sk-...`、`key-...`）
+- Bearer Token
+- JWT Token
+- 数据库连接串（postgres、mysql、mongodb、redis、amqp）
+- 键值对密钥（`api_key=...`、`SECRET_KEY: "..."`）
+- 环境变量赋值（`PASSWORD=...`、`TOKEN=...`）
+
+默认开启，无需配置。
+
+## 相关项目与致谢
+
+- [claude-replay](https://github.com/es617/claude-replay)（MIT，Enrico Santagati）— cc-go-on 的会话格式解析和敏感信息过滤模式参考了该项目的研究成果。推荐用于生成自包含的 HTML 回放。
+- [claudebin.com](https://github.com/wunderlabs-dev/claudebin.com)（MIT，Wunderlabs）— 托管会话 Viewer，支持语法高亮和工具调用渲染。适合公开分享。
+- [claude-code-share-plugin](https://github.com/PostHog/claude-code-share-plugin) — 将会话转为 Markdown 并推送到 GitHub 仓库。
 
 ## 依赖
 

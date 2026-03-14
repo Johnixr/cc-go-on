@@ -135,16 +135,21 @@ cc-go-on/
 ├── core/
 │   ├── common.sh            # Config, utils, dependency checks
 │   ├── crypto.sh            # AES-256-CBC encrypt/decrypt
-│   ├── export.sh            # Package → encrypt → upload
-│   ├── import.sh            # Download → decrypt → install
+│   ├── redact.sh            # Sensitive info redaction (API keys, tokens, etc.)
+│   ├── export.sh            # Package → redact → encrypt → upload
+│   ├── import.sh            # Download → decrypt → path remap → install
 │   └── storage/
 │       ├── transfer_sh.sh   # transfer.sh backend (default)
 │       └── s3.sh            # S3-compatible backend
 ├── adapters/
-│   └── claude-code/         # Claude Code adapter
-│       ├── SKILL.md         # /ccgoon skill definition
-│       ├── export.sh        # Read CC session data
-│       └── import.sh        # Write CC session data + register
+│   ├── claude-code/         # Claude Code adapter
+│   │   ├── SKILL.md         # /ccgoon skill definition
+│   │   ├── export.sh        # Read CC session data
+│   │   └── import.sh        # Write CC session data + register
+│   ├── cursor/              # Cursor adapter (stub)
+│   └── codex/               # Codex adapter (stub)
+├── docs/
+│   └── session-formats.md   # CC/Cursor/Codex JSONL format reference
 ├── config/
 │   └── default.json         # Default configuration
 └── install.sh               # One-click installer
@@ -159,15 +164,42 @@ To support a new AI tool, create `adapters/<tool-name>/` with two files:
 
 See `adapters/claude-code/` for a complete reference. PRs welcome!
 
-## Related Projects
+## Comparison
 
-These projects focus on Claude Code session viewing and sharing:
+|  | cc-go-on | [claudebin](https://github.com/wunderlabs-dev/claudebin.com) | [claude-replay](https://github.com/es617/claude-replay) | [ccshare](https://github.com/insomenia/ccshare) |
+|--|---------|-----------|--------------|---------|
+| **Encryption** | AES-256, auto random key | None | None | None |
+| **Secret redaction** | Auto (API keys, tokens, creds) | Path stripping only | Regex-based, opt-out | None |
+| **Cross-tool** | CC + Cursor + Codex (adapter) | CC only | CC + Cursor + Codex (read) | CC only |
+| **Resume session** | Yes (import + /resume) | No | No | Partial |
+| **Requires server** | No (transfer.sh default) | Supabase | No | ccshare.cc |
+| **Output** | Encrypted file + token | Hosted URL | Self-contained HTML | Hosted URL |
+| **Install** | `curl \| bash` + auto SKILL | CLI plugin | `npx` | `npx` |
 
-- [claudebin.com](https://github.com/wunderlabs-dev/claudebin.com) — Export sessions to hosted viewer with resume support
-- [claude-code-share-plugin](https://github.com/PostHog/claude-code-share-plugin) — Convert sessions to markdown, push to GitHub
-- [claude-replay](https://github.com/es617/claude-replay) — Self-contained HTML replays
+cc-go-on focuses on **encrypted team handoff** and **cross-tool portability** — not viewing.
 
-**cc-go-on** differs by focusing on **cross-tool portability** and **encrypted team handoff**, not just viewing.
+## Security
+
+### Sensitive Information Redaction
+
+Before upload, cc-go-on automatically scans and redacts:
+
+- Private keys (PEM: RSA, EC, DSA, OpenSSH)
+- AWS access key IDs (`AKIA...`)
+- API keys (`sk-ant-...`, `sk-...`, `key-...`)
+- Bearer tokens
+- JWT tokens
+- Database connection strings (postgres, mysql, mongodb, redis, amqp)
+- Key-value secrets (`api_key=...`, `SECRET_KEY: "..."`, etc.)
+- Environment variable assignments (`PASSWORD=...`, `TOKEN=...`)
+
+This is on by default — no configuration needed.
+
+## Related Projects & Credits
+
+- [claude-replay](https://github.com/es617/claude-replay) (MIT, Enrico Santagati) — Session format parsing and secret redaction patterns in cc-go-on are derived from this project's research. Excellent tool for generating self-contained HTML replays.
+- [claudebin.com](https://github.com/wunderlabs-dev/claudebin.com) (MIT, Wunderlabs) — Hosted session viewer with syntax highlighting and tool call rendering. Great for public sharing.
+- [claude-code-share-plugin](https://github.com/PostHog/claude-code-share-plugin) — Convert sessions to markdown and push to GitHub repo.
 
 ## Dependencies
 
