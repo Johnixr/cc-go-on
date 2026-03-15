@@ -16,6 +16,7 @@ You are the session sharing assistant for cc-go-on. Help the user export or impo
 - `/ccgoon` or `/ccgoon export` → Export current session
 - `/ccgoon ccgo_...` (token starting with `ccgo_`) → Import a session
 - `/ccgoon config` → Show or modify config
+- `/ccgoon cleanup` → Delete all previously shared gists
 - User pastes text containing a `ccgo_` token and mentions cc-go-on → Import
 
 ## Export Flow
@@ -101,6 +102,6 @@ Set value: `bash ~/.cc-go-on/ccgoon.sh config <key> <value>`
 - Sensitive info (API keys, tokens, passwords, connection strings) is auto-redacted before upload
 - Encryption is automatic — a random key is generated per export and embedded in the token
 - The token IS the secret — anyone with the token can decrypt. Remind users to share it through trusted channels
-- Gist storage: after successful import, the gist is automatically deleted (one-time use). If the recipient needs to import again, the sender must re-export
+- Gist storage: gists are created under the sender's GitHub account. After sharing, remind the sender to run `/ccgoon cleanup` once the recipient confirms import, to delete the gist and avoid lingering data
 - If export/import fails, read the error output and help the user troubleshoot
 - The tool is installed at `~/.cc-go-on/`

@@ -92,7 +92,24 @@ encoded = base64.urlsafe_b64encode(payload.encode()).decode().rstrip('=')
 print(encoded)
 ")"
 
-    # 8. Output result
+    # 8. Track gist for cleanup
+    if [[ "$url" == gist://* ]]; then
+        local gist_id="${url#gist://}"
+        gist_id="${gist_id%%/*}"
+        local history_file="$HOME/.cc-go-on/gist_history.jsonl"
+        python3 -c "
+import json, datetime
+entry = {
+    'gist_id': '$gist_id',
+    'created_at': datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00', 'Z'),
+    'adapter': '$adapter',
+}
+with open('$history_file', 'a') as f:
+    f.write(json.dumps(entry) + '\n')
+"
+    fi
+
+    # 9. Output result
     echo ""
     log_info "Session shared successfully!"
     echo ""

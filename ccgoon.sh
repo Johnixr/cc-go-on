@@ -142,6 +142,38 @@ main() {
             fi
             ;;
 
+        cleanup)
+            local history_file="$HOME/.cc-go-on/gist_history.jsonl"
+            if [[ ! -f "$history_file" ]]; then
+                log_info "No shared gists to clean up"
+                exit 0
+            fi
+
+            if ! command -v gh &>/dev/null; then
+                log_error "gh CLI required for cleanup"
+                exit 1
+            fi
+
+            local deleted=0
+            local failed=0
+            while IFS= read -r line; do
+                local gist_id
+                gist_id=$(echo "$line" | python3 -c "import json,sys; print(json.load(sys.stdin).get('gist_id',''))")
+                if [[ -n "$gist_id" ]]; then
+                    if gh gist delete "$gist_id" 2>/dev/null; then
+                        deleted=$((deleted + 1))
+                    else
+                        failed=$((failed + 1))
+                    fi
+                fi
+            done < "$history_file"
+
+            # Clear history
+            > "$history_file"
+
+            log_info "Cleanup done: $deleted deleted, $failed already gone"
+            ;;
+
         version)
             echo "cc-go-on v$CCGO_VERSION"
             ;;
