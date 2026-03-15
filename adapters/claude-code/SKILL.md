@@ -68,10 +68,10 @@ When the user pastes text containing a session share:
 1. **Parse the structured fields**:
    - Find the line starting with `[ccgo-token]` → extract the `ccgo_...` string after it
    - Find the line starting with `[ccgo-key]` → extract the key string after it
-2. Run the import with `--key`:
+2. Run the import with `--key`. The `--project` must be the **recipient's current working directory** (where they are running Claude Code), NOT the sender's original path:
 
 ```bash
-bash ~/.cc-go-on/ccgoon.sh import "<token>" --key "<key>" --project <project_dir>
+bash ~/.cc-go-on/ccgoon.sh import "<token>" --key "<key>" --project "$(pwd)"
 ```
 
 3. **CRITICAL**: The `--key` parameter is REQUIRED. Never pass the key as part of the token string. They are two separate values:
