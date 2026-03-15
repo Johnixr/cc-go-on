@@ -68,8 +68,8 @@ No passphrase needed. A random encryption key is auto-generated and embedded in 
 ## How It Works
 
 ```
-Export:  Session files → tar.gz → random key → AES-256 encrypt → upload → token (with key)
-Import: token → extract key & URL → download → decrypt → path remap → register → resume
+Export:  Session files → tar.gz → random key → AES-256 encrypt → upload → token + key (separate)
+Import: token + key → download → decrypt → path remap → register → resume
 ```
 
 After export, cc-go-on generates a shareable snippet you can copy-paste to your teammate:
@@ -119,9 +119,12 @@ When using the default Gist backend:
 
 ### Encryption
 
-Every export auto-generates a random AES-256 key. The key is embedded in the token — no passwords to remember or share separately.
+Every export auto-generates a random AES-256 key. The token and key are **separate**:
 
-The token IS the secret. Share it through trusted channels (DM, Slack, etc). Anyone with the token can decrypt the session.
+- **Token** (`ccgo_...`): contains only the download URL
+- **Key** (43-char string): the decryption key
+
+Both are required to access the session. Even if the token is intercepted, the session cannot be decrypted without the key. Share them through the same or different channels — the separation ensures no single leaked string compromises everything.
 
 ### Path Remapping
 

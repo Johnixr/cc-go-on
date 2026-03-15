@@ -108,11 +108,13 @@ main() {
 
             local adapter=""
             local project_dir="."
+            local passkey=""
 
             while [[ $# -gt 0 ]]; do
                 case "$1" in
                     -a|--adapter)    adapter="$2"; shift 2 ;;
                     -d|--project)    project_dir="$2"; shift 2 ;;
+                    -k|--key)        passkey="$2"; shift 2 ;;
                     *) log_error "Unknown option: $1"; exit 1 ;;
                 esac
             done
@@ -127,7 +129,7 @@ main() {
             log_info "Adapter: $adapter"
 
             source "$SCRIPT_DIR/core/import.sh"
-            import_session "$token" "$adapter" "$project_dir"
+            import_session "$token" "$adapter" "$project_dir" "$passkey"
             ;;
 
         config)

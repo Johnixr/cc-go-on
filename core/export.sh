@@ -83,14 +83,17 @@ json.dump(meta, open('$pack_dir/metadata.json', 'w'), indent=2)
         return 1
     fi
 
-    # 7. Generate token: base64url( JSON{"u": url, "k": key} )
+    # 7. Generate token (URL only) and short key
     local token
     token="ccgo_$(python3 -c "
 import json, base64
-payload = json.dumps({'u': '$url', 'k': '$key'}, separators=(',',':'))
+payload = json.dumps({'u': '$url'}, separators=(',',':'))
 encoded = base64.urlsafe_b64encode(payload.encode()).decode().rstrip('=')
 print(encoded)
 ")"
+    # Shorten the key for easier sharing (strip trailing =)
+    local short_key
+    short_key=$(echo -n "$key" | tr -d '=')
 
     # 8. Track gist + auto-cleanup old ones
     if [[ "$url" == gist://* ]]; then
@@ -152,6 +155,7 @@ PYEOF
     log_info "Session shared successfully!"
     echo ""
     echo "CCGO_TOKEN=$token"
+    echo "CCGO_KEY=$short_key"
     echo "CCGO_URL=$url"
     echo ""
 }

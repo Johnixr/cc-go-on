@@ -68,8 +68,8 @@ curl -fsSL https://raw.githubusercontent.com/Johnixr/cc-go-on/main/install.sh | 
 ## 工作原理
 
 ```
-导出：Session 文件 → tar.gz 压缩 → 随机密钥 → AES-256 加密 → 上传 → token（含密钥）
-导入：token → 提取密钥和 URL → 下载 → 解密 → 路径重映射 → 注册 → 继续对话
+导出：Session 文件 → tar.gz 压缩 → 随机密钥 → AES-256 加密 → 上传 → token + 密钥（分离输出）
+导入：token + 密钥 → 下载 → 解密 → 路径重映射 → 注册 → 继续对话
 ```
 
 导出后会生成一段可直接复制的分享文字：
@@ -119,9 +119,12 @@ Then load the session: /ccgoonccgo_eyJ1IjoiaHR0cHM6Ly90cmFuc2Zlci5zaC8...
 
 ### 加密
 
-每次导出自动生成随机 AES-256 密钥，嵌入 token 中。不需要记密码，也不需要单独传密钥。
+每次导出自动生成随机 AES-256 密钥。Token 和密钥**分离设计**：
 
-Token 就是密钥——拿到 token 就能解密。请通过可信渠道（私信、Slack 等）分享 token。
+- **Token**（`ccgo_...`）：仅包含下载地址
+- **密钥**（43 位字符串）：解密密钥
+
+两者缺一不可。即使 token 被截获，没有密钥也无法解密会话内容。可以通过同一渠道或不同渠道分别发送。
 
 ### 路径重映射
 
