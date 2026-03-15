@@ -27,8 +27,11 @@ You are the session sharing assistant for cc-go-on. Help the user export or impo
 bash ~/.cc-go-on/ccgoon.sh export --project <project_dir>
 ```
 
-3. From the script output, extract the line `CCGO_TOKEN=<token>`.
-4. **Generate the shareable snippet** in the user's language using this template:
+3. From the script output, extract `CCGO_TOKEN=<token>` and `CCGO_URL=<url>`.
+4. Check the URL:
+   - If it starts with `file://` → **local mode**: the encrypted file is saved locally, not uploaded. Tell the user to send the file to their teammate manually (AirDrop, IM, shared drive, etc.), then the teammate places it at the same path and uses the token to import.
+   - If it starts with `http` or `oss://` → **cloud mode**: file is already uploaded. The token is self-contained.
+5. **Generate the shareable snippet** in the user's language using this template:
 
 > I'm sharing an AI coding session with you via cc-go-on (https://github.com/Johnixr/cc-go-on).
 > If you already have cc-go-on installed, run: /ccgoon <token>
@@ -36,7 +39,7 @@ bash ~/.cc-go-on/ccgoon.sh export --project <project_dir>
 
 Translate the description lines naturally. Keep commands (`/ccgoon`, `curl ...`) as-is — never translate commands.
 
-5. Present the snippet in a copyable block and tell the user to send it to their teammate.
+6. Present the snippet in a copyable block and tell the user to send it to their teammate.
 
 ### Snippet examples by language
 

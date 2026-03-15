@@ -84,19 +84,28 @@ Your teammate pastes this into their AI tool — it handles install, download, d
 
 ### Storage
 
-Default: [transfer.sh](https://transfer.sh) — zero config, files auto-expire in 7 days.
+Default: **local** — encrypted file saved to `~/.cc-go-on/shared/`, you share it manually (AirDrop, Slack, shared drive, etc.).
 
-You can switch to S3-compatible storage (Cloudflare R2, AWS S3, MinIO, etc.):
+Switch to cloud storage for one-token sharing:
 
+| Backend | Config | Notes |
+|---------|--------|-------|
+| **Aliyun OSS** | `ccgoon.sh config storage oss` | Requires `aliyun` CLI |
+| **S3-compatible** | `ccgoon.sh config storage s3` | AWS S3, Cloudflare R2, MinIO |
+| **transfer.sh** | `ccgoon.sh config storage transfer_sh` | Public service, may be unreliable |
+
+**Aliyun OSS** (recommended for China):
+```bash
+~/.cc-go-on/ccgoon.sh config storage oss
+~/.cc-go-on/ccgoon.sh config storage_options.oss.bucket my-bucket
+~/.cc-go-on/ccgoon.sh config storage_options.oss.endpoint oss-cn-hangzhou.aliyuncs.com
+```
+
+**S3-compatible** (Cloudflare R2, AWS S3, MinIO):
 ```bash
 ~/.cc-go-on/ccgoon.sh config storage s3
 ~/.cc-go-on/ccgoon.sh config storage_options.s3.endpoint https://xxx.r2.cloudflarestorage.com
 ~/.cc-go-on/ccgoon.sh config storage_options.s3.bucket my-bucket
-```
-
-Or self-host transfer.sh:
-```bash
-~/.cc-go-on/ccgoon.sh config storage_options.transfer_sh.host https://your-server.com
 ```
 
 ### Encryption
@@ -139,8 +148,10 @@ cc-go-on/
 │   ├── export.sh            # Package → redact → encrypt → upload
 │   ├── import.sh            # Download → decrypt → path remap → install
 │   └── storage/
-│       ├── transfer_sh.sh   # transfer.sh backend (default)
-│       └── s3.sh            # S3-compatible backend
+│       ├── local.sh         # Local file (default)
+│       ├── oss.sh           # Aliyun OSS
+│       ├── s3.sh            # S3-compatible (AWS, R2, MinIO)
+│       └── transfer_sh.sh   # transfer.sh
 ├── adapters/
 │   ├── claude-code/         # Claude Code adapter
 │   │   ├── SKILL.md         # /ccgoon skill definition

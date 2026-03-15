@@ -84,22 +84,28 @@ Then load the session: /ccgoonccgo_eyJ1IjoiaHR0cHM6Ly90cmFuc2Zlci5zaC8...
 
 ### 存储
 
-默认使用 [transfer.sh](https://transfer.sh)，开箱即用，无需注册账号，文件 7 天后自动过期。
+默认使用**本地模式**——加密文件保存到 `~/.cc-go-on/shared/`，你手动发给对方（AirDrop、微信、飞书等）。
 
-也支持切换为其他存储：
+切换到云存储可实现一个 token 搞定：
 
-**S3 兼容存储**（Cloudflare R2、AWS S3、MinIO 等）：
+| 后端 | 配置 | 说明 |
+|------|------|------|
+| **阿里云 OSS** | `ccgoon.sh config storage oss` | 需要 `aliyun` CLI |
+| **S3 兼容** | `ccgoon.sh config storage s3` | AWS S3、Cloudflare R2、MinIO |
+| **transfer.sh** | `ccgoon.sh config storage transfer_sh` | 公共服务，不稳定 |
 
+**阿里云 OSS**（推荐国内用户）：
+```bash
+~/.cc-go-on/ccgoon.sh config storage oss
+~/.cc-go-on/ccgoon.sh config storage_options.oss.bucket my-bucket
+~/.cc-go-on/ccgoon.sh config storage_options.oss.endpoint oss-cn-hangzhou.aliyuncs.com
+```
+
+**S3 兼容存储**（Cloudflare R2、AWS S3、MinIO）：
 ```bash
 ~/.cc-go-on/ccgoon.sh config storage s3
 ~/.cc-go-on/ccgoon.sh config storage_options.s3.endpoint https://xxx.r2.cloudflarestorage.com
 ~/.cc-go-on/ccgoon.sh config storage_options.s3.bucket my-bucket
-```
-
-**自建 transfer.sh 服务**：
-
-```bash
-~/.cc-go-on/ccgoon.sh config storage_options.transfer_sh.host https://your-server.com
 ```
 
 ### 加密
@@ -140,8 +146,10 @@ cc-go-on/
 │   ├── export.sh            # 打包 → 过滤 → 加密 → 上传
 │   ├── import.sh            # 下载 → 解密 → 路径重映射 → 安装
 │   └── storage/
-│       ├── transfer_sh.sh   # transfer.sh 存储后端（默认）
-│       └── s3.sh            # S3 兼容存储后端
+│       ├── local.sh         # 本地文件（默认）
+│       ├── oss.sh           # 阿里云 OSS
+│       ├── s3.sh            # S3 兼容（AWS、R2、MinIO）
+│       └── transfer_sh.sh   # transfer.sh
 ├── adapters/
 │   ├── claude-code/         # Claude Code 适配器
 │   │   ├── SKILL.md         # /ccgoon 命令定义

@@ -1,9 +1,17 @@
 {
-  "storage": "transfer.sh",
+  "storage": "local",
   "storage_options": {
+    "local": {
+      "dir": "~/.cc-go-on/shared"
+    },
     "transfer_sh": {
       "host": "https://transfer.sh",
       "max_days": 7
+    },
+    "oss": {
+      "bucket": "",
+      "endpoint": "",
+      "prefix": "cc-go-on"
     },
     "s3": {
       "endpoint": "",
