@@ -5,6 +5,10 @@ set -euo pipefail
 STORAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$STORAGE_DIR/common.sh"
 
+# Use python3 for base64 — portable across macOS/Linux (no -d vs -D issues)
+b64_encode() { python3 -c "import base64,sys; sys.stdout.buffer.write(base64.b64encode(sys.stdin.buffer.read()))" < "$1"; }
+b64_decode() { python3 -c "import base64,sys; sys.stdout.buffer.write(base64.b64decode(sys.stdin.buffer.read()))" < "$1" > "$2"; }
+
 storage_upload() {
     local file="$1"
 
@@ -13,41 +17,40 @@ storage_upload() {
         return 1
     fi
 
-    # Check auth
     if ! gh auth status &>/dev/null 2>&1; then
         log_error "gh not authenticated. Run: gh auth login"
         return 1
     fi
 
-    local filename
-    filename="$(basename "$file")"
+    # Base64 encode (gist only supports text)
+    local b64_file="/tmp/ccgo_session_$$.b64"
+    b64_encode "$file" > "$b64_file"
 
-    # Create a secret gist (unlisted, not discoverable, but accessible via URL)
-    # Binary files need base64 encoding since gist only supports text
-    local encoded="/tmp/ccgo_${filename}.b64"
-    base64 < "$file" > "$encoded"
+    # Use a fixed filename so download knows what to look for
+    local gist_filename="ccgo_session.b64"
 
     local gist_url
-    gist_url=$(gh gist create "$encoded" --desc "cc-go-on session (auto-expires)" --filename "${filename}.b64" 2>/dev/null)
+    gist_url=$(gh gist create "$b64_file" \
+        --desc "cc-go-on shared session" \
+        --filename "$gist_filename" 2>/dev/null)
 
-    rm -f "$encoded"
+    rm -f "$b64_file"
 
     if [[ -z "$gist_url" || "$gist_url" != *"gist.github.com"* ]]; then
         log_error "Gist creation failed"
         return 1
     fi
 
-    # Extract gist ID and construct raw URL
+    # Extract gist ID
     local gist_id
-    gist_id=$(echo "$gist_url" | grep -o '[a-f0-9]\{32\}')
+    gist_id=$(echo "$gist_url" | grep -oE '[a-f0-9]{32}')
 
     if [[ -z "$gist_id" ]]; then
-        # Fallback: use the URL as-is
-        echo "$gist_url"
-    else
-        # Raw content URL for direct download
-        echo "gist://$gist_id/${filename}.b64"
+        log_error "Cannot parse gist ID from: $gist_url"
+        return 1
     fi
+
+    echo "gist://$gist_id"
 }
 
 storage_download() {
@@ -60,36 +63,34 @@ storage_download() {
     fi
 
     if [[ "$url" == gist://* ]]; then
-        # Parse gist://GIST_ID/FILENAME
-        local path="${url#gist://}"
-        local gist_id="${path%%/*}"
-        local filename="${path#*/}"
+        local gist_id="${url#gist://}"
+        # Remove trailing path if any (backward compat with old token format)
+        gist_id="${gist_id%%/*}"
 
-        # Download via gh CLI
-        local tmp_dir="/tmp/ccgo_gist_$$"
-        mkdir -p "$tmp_dir"
+        # Download via gh api (no SSH needed, works with HTTPS auth)
+        local b64_file="/tmp/ccgo_download_$$.b64"
 
-        gh gist clone "$gist_id" "$tmp_dir" 2>/dev/null || {
+        # Get the first file's content from the gist
+        gh api "gists/$gist_id" --jq '.files | to_entries[0].value.content' > "$b64_file" 2>/dev/null || {
             log_error "Failed to download gist $gist_id"
-            rm -rf "$tmp_dir"
+            rm -f "$b64_file"
             return 1
         }
 
-        local b64_file="$tmp_dir/$filename"
-        if [[ ! -f "$b64_file" ]]; then
-            # Try without path
-            b64_file=$(find "$tmp_dir" -name "*.b64" -type f | head -1)
-        fi
-
-        if [[ -z "$b64_file" || ! -f "$b64_file" ]]; then
-            log_error "Gist file not found"
-            rm -rf "$tmp_dir"
+        if [[ ! -s "$b64_file" ]]; then
+            log_error "Gist content is empty"
+            rm -f "$b64_file"
             return 1
         fi
 
         # Decode base64 back to binary
-        base64 -d < "$b64_file" > "$output"
-        rm -rf "$tmp_dir"
+        b64_decode "$b64_file" "$output" || {
+            log_error "Base64 decode failed"
+            rm -f "$b64_file"
+            return 1
+        }
+
+        rm -f "$b64_file"
     else
         # HTTP URL fallback
         local http_code
