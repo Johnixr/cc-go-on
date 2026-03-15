@@ -107,6 +107,16 @@ Then load the session: /ccgoonccgo_eyJ1IjoiaHR0cHM6Ly90cmFuc2Zlci5zaC8...
 ~/.cc-go-on/ccgoon.sh config storage_options.s3.bucket my-bucket
 ```
 
+### Gist 生命周期
+
+使用默认 Gist 后端时：
+
+- Gist 以 **secret**（不可搜索）方式创建在发送方的 GitHub 账号下
+- 每次导出时自动记录 gist ID 到 `~/.cc-go-on/gist_history.jsonl`
+- **自动清理**：每次新导出时，超过 7 天的旧 gist 会被静默删除
+- **手动清理**：`ccgoon.sh cleanup` 立即删除所有已分享的 gist
+- 接收方不需要关心清理
+
 ### 加密
 
 每次导出自动生成随机 AES-256 密钥，嵌入 token 中。不需要记密码，也不需要单独传密钥。

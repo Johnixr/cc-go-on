@@ -107,6 +107,16 @@ Default: **GitHub Gist** — zero config if you have `gh` CLI authenticated. Enc
 ~/.cc-go-on/ccgoon.sh config storage_options.s3.bucket my-bucket
 ```
 
+### Gist Lifecycle
+
+When using the default Gist backend:
+
+- Gists are created as **secret** (unlisted) under the sender's GitHub account
+- Each export records the gist ID locally in `~/.cc-go-on/gist_history.jsonl`
+- **Auto-cleanup**: on each new export, gists older than 7 days are silently deleted
+- **Manual cleanup**: `ccgoon.sh cleanup` deletes all shared gists immediately
+- The recipient does not need to do anything about cleanup
+
 ### Encryption
 
 Every export auto-generates a random AES-256 key. The key is embedded in the token — no passwords to remember or share separately.
