@@ -2,8 +2,8 @@
 # cc-go-on: S3-compatible storage backend (AWS S3, Cloudflare R2, MinIO, etc.)
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-source "$SCRIPT_DIR/common.sh"
+STORAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$STORAGE_DIR/common.sh"
 
 storage_upload() {
     local file="$1"

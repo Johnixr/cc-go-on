@@ -2,8 +2,8 @@
 # cc-go-on: Claude Code adapter — export session
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../core/common.sh"
+ADAPTER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$ADAPTER_DIR/../../core/common.sh"
 
 adapter_export() {
     local session_id="$1"
@@ -17,7 +17,7 @@ adapter_export() {
 
     # Claude Code uses path hash as project dir name: /a/b/c → -a-b-c
     local project_hash
-    project_hash=$(echo "$project_path" | tr '/' '-')
+    project_hash=$(echo "$project_path" | tr '/_' '--')
     local cc_project_dir="$cc_home/projects/$project_hash"
 
     if [[ ! -d "$cc_project_dir" ]]; then

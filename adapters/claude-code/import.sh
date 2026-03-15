@@ -2,8 +2,8 @@
 # cc-go-on: Claude Code adapter — import session
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../core/common.sh"
+ADAPTER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$ADAPTER_DIR/../../core/common.sh"
 
 adapter_import() {
     local session_data_dir="$1"   # extracted session directory
@@ -16,7 +16,7 @@ adapter_import() {
 
     # Compute local project hash
     local project_hash
-    project_hash=$(echo "$target_path" | tr '/' '-')
+    project_hash=$(echo "$target_path" | tr '/_' '--')
     local cc_project_dir="$cc_home/projects/$project_hash"
 
     mkdir -p "$cc_project_dir"
@@ -131,8 +131,8 @@ idx['entries'].append({
     'fileMtime': mtime,
     'firstPrompt': '[shared] ' + first_prompt,
     'messageCount': msg_count,
-    'created': datetime.datetime.utcnow().isoformat() + 'Z',
-    'modified': datetime.datetime.utcnow().isoformat() + 'Z',
+    'created': datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00', 'Z'),
+    'modified': datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00', 'Z'),
     'gitBranch': git_branch,
     'projectPath': project_path,
     'isSidechain': False,

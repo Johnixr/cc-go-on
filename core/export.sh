@@ -38,7 +38,7 @@ import json, datetime, os
 meta = {
     'version': '$CCGO_VERSION',
     'adapter': '$adapter',
-    'exported_at': datetime.datetime.utcnow().isoformat() + 'Z',
+    'exported_at': datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00', 'Z'),
     'git': json.loads('$git_data'),
     'project_path': os.path.realpath('$project_dir'),
     'platform': '$(uname -s)',

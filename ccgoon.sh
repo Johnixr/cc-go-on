@@ -88,16 +88,18 @@ main() {
             local session_dir="$CCGO_TEMP/session_data"
             mkdir -p "$session_dir"
 
+            local ccgo_root="$SCRIPT_DIR"
+
             source "$adapter_export"
             adapter_export "$session_id" "$project_dir" "$session_dir"
 
-            source "$SCRIPT_DIR/core/export.sh"
+            source "$ccgo_root/core/export.sh"
             export_session "$adapter" "$session_dir" "$project_dir"
             ;;
 
         import)
             if [[ $# -lt 1 ]]; then
-                log_error "Usage: share.sh import <token> [options]"
+                log_error "Usage: ccgoon.sh import <token> [options]"
                 exit 1
             fi
 

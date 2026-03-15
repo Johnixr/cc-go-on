@@ -8,7 +8,7 @@ import json
 import sys
 import re
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 # --- Format detection ---
@@ -99,7 +99,7 @@ def convert_cursor_to_cc(input_path, output_path):
                     'role': role,
                     'content': content,
                 },
-                'timestamp': datetime.utcnow().isoformat() + 'Z',
+                'timestamp': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
             }
             messages.append(cc_entry)
 
@@ -147,7 +147,7 @@ def convert_codex_to_cc(input_path, output_path):
             except json.JSONDecodeError:
                 continue
 
-            timestamp = obj.get('timestamp', datetime.utcnow().isoformat() + 'Z')
+            timestamp = obj.get('timestamp', datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'))
             evt_type = obj.get('type', '')
             payload = obj.get('payload', {})
 

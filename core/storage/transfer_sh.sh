@@ -2,8 +2,8 @@
 # cc-go-on: transfer.sh storage backend
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-source "$SCRIPT_DIR/common.sh"
+STORAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$STORAGE_DIR/common.sh"
 
 storage_upload() {
     local file="$1"
@@ -16,10 +16,11 @@ storage_upload() {
     filename="$(basename "$file")"
 
     local response
-    response=$(curl -s -w "\n%{http_code}" \
+    response=$(curl -s --connect-timeout 10 --max-time 120 \
+        -w "\n%{http_code}" \
         --upload-file "$file" \
         -H "Max-Days: $max_days" \
-        "$host/$filename")
+        "$host/$filename" 2>&1) || true
 
     local http_code
     http_code=$(echo "$response" | tail -1)
@@ -30,7 +31,12 @@ storage_upload() {
         echo "$url"
     else
         log_error "Upload failed (HTTP $http_code)"
-        log_error "Response: $url"
+        if [[ "$http_code" == "000" ]]; then
+            log_error "Cannot connect to $host — service may be down or blocked"
+            log_error "Try a different storage backend:"
+            log_error "  ccgoon.sh config storage s3"
+            log_error "  ccgoon.sh config storage_options.transfer_sh.host https://your-server.com"
+        fi
         return 1
     fi
 }
