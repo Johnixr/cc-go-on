@@ -92,21 +92,59 @@ encoded = base64.urlsafe_b64encode(payload.encode()).decode().rstrip('=')
 print(encoded)
 ")"
 
-    # 8. Track gist for cleanup
+    # 8. Track gist + auto-cleanup old ones
     if [[ "$url" == gist://* ]]; then
         local gist_id="${url#gist://}"
         gist_id="${gist_id%%/*}"
         local history_file="$HOME/.cc-go-on/gist_history.jsonl"
-        python3 -c "
-import json, datetime
-entry = {
-    'gist_id': '$gist_id',
-    'created_at': datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00', 'Z'),
-    'adapter': '$adapter',
+
+        # Record this gist, then clean expired ones (>7 days)
+        python3 << PYEOF
+import json, datetime, os, subprocess
+
+history_file = "$history_file"
+now = datetime.datetime.now(datetime.timezone.utc)
+max_age_days = 7
+
+# Append new entry
+new_entry = {
+    "gist_id": "$gist_id",
+    "created_at": now.isoformat().replace("+00:00", "Z"),
 }
-with open('$history_file', 'a') as f:
-    f.write(json.dumps(entry) + '\n')
-"
+entries = []
+if os.path.exists(history_file):
+    with open(history_file, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                try:
+                    entries.append(json.loads(line))
+                except:
+                    pass
+entries.append(new_entry)
+
+# Split into keep vs expired
+keep = []
+for e in entries:
+    try:
+        created = datetime.datetime.fromisoformat(e["created_at"].replace("Z", "+00:00"))
+        age = (now - created).days
+        if age > max_age_days:
+            # Auto-delete expired gist (best-effort, silent failure)
+            gid = e.get("gist_id", "")
+            if gid:
+                subprocess.run(["gh", "gist", "delete", gid],
+                    capture_output=True, timeout=10)
+        else:
+            keep.append(e)
+    except:
+        keep.append(e)
+
+# Rewrite history with only active entries
+with open(history_file, "w") as f:
+    for e in keep:
+        f.write(json.dumps(e) + "\n")
+PYEOF
     fi
 
     # 9. Output result

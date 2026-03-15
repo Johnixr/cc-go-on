@@ -102,6 +102,6 @@ Set value: `bash ~/.cc-go-on/ccgoon.sh config <key> <value>`
 - Sensitive info (API keys, tokens, passwords, connection strings) is auto-redacted before upload
 - Encryption is automatic — a random key is generated per export and embedded in the token
 - The token IS the secret — anyone with the token can decrypt. Remind users to share it through trusted channels
-- Gist storage: gists are created under the sender's GitHub account. After sharing, remind the sender to run `/ccgoon cleanup` once the recipient confirms import, to delete the gist and avoid lingering data
+- Gist storage: gists are created under the sender's GitHub account. Gists older than 7 days are auto-deleted on the next export. Manual cleanup: `/ccgoon cleanup`
 - If export/import fails, read the error output and help the user troubleshoot
 - The tool is installed at `~/.cc-go-on/`
