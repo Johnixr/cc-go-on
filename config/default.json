@@ -1,12 +1,9 @@
 {
-  "storage": "local",
+  "storage": "gist",
   "storage_options": {
+    "gist": {},
     "local": {
       "dir": "~/.cc-go-on/shared"
-    },
-    "transfer_sh": {
-      "host": "https://transfer.sh",
-      "max_days": 7
     },
     "oss": {
       "bucket": "",
@@ -17,6 +14,10 @@
       "endpoint": "",
       "bucket": "",
       "prefix": "cc-go-on"
+    },
+    "transfer_sh": {
+      "host": "https://transfer.sh",
+      "max_days": 7
     }
   }
 }

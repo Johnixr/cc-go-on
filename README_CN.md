@@ -84,17 +84,16 @@ Then load the session: /ccgoonccgo_eyJ1IjoiaHR0cHM6Ly90cmFuc2Zlci5zaC8...
 
 ### 存储
 
-默认使用**本地模式**——加密文件保存到 `~/.cc-go-on/shared/`，你手动发给对方（AirDrop、微信、飞书等）。
-
-切换到云存储可实现一个 token 搞定：
+默认使用 **GitHub Gist**——如果你已经配好 `gh` CLI，零配置即可使用。加密文件上传为 secret gist（不可被搜索，只有拿到 token 才能访问）。
 
 | 后端 | 配置 | 说明 |
 |------|------|------|
-| **阿里云 OSS** | `ccgoon.sh config storage oss` | 需要 `aliyun` CLI |
+| **GitHub Gist** | 默认 | 零配置，需要 `gh` CLI |
+| **阿里云 OSS** | `ccgoon.sh config storage oss` | 推荐国内用户 |
 | **S3 兼容** | `ccgoon.sh config storage s3` | AWS S3、Cloudflare R2、MinIO |
-| **transfer.sh** | `ccgoon.sh config storage transfer_sh` | 公共服务，不稳定 |
+| **本地文件** | `ccgoon.sh config storage local` | 手动传输（AirDrop、微信） |
 
-**阿里云 OSS**（推荐国内用户）：
+**阿里云 OSS**：
 ```bash
 ~/.cc-go-on/ccgoon.sh config storage oss
 ~/.cc-go-on/ccgoon.sh config storage_options.oss.bucket my-bucket
@@ -146,9 +145,10 @@ cc-go-on/
 │   ├── export.sh            # 打包 → 过滤 → 加密 → 上传
 │   ├── import.sh            # 下载 → 解密 → 路径重映射 → 安装
 │   └── storage/
-│       ├── local.sh         # 本地文件（默认）
+│       ├── gist.sh          # GitHub Gist（默认）
 │       ├── oss.sh           # 阿里云 OSS
 │       ├── s3.sh            # S3 兼容（AWS、R2、MinIO）
+│       ├── local.sh         # 本地文件
 │       └── transfer_sh.sh   # transfer.sh
 ├── adapters/
 │   ├── claude-code/         # Claude Code 适配器

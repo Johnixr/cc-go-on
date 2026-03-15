@@ -84,17 +84,16 @@ Your teammate pastes this into their AI tool — it handles install, download, d
 
 ### Storage
 
-Default: **local** — encrypted file saved to `~/.cc-go-on/shared/`, you share it manually (AirDrop, Slack, shared drive, etc.).
-
-Switch to cloud storage for one-token sharing:
+Default: **GitHub Gist** — zero config if you have `gh` CLI authenticated. Encrypted file uploaded as a secret (unlisted) gist, accessible only via the token.
 
 | Backend | Config | Notes |
 |---------|--------|-------|
-| **Aliyun OSS** | `ccgoon.sh config storage oss` | Requires `aliyun` CLI |
+| **GitHub Gist** | default | Zero config, requires `gh` CLI |
+| **Aliyun OSS** | `ccgoon.sh config storage oss` | Recommended for China |
 | **S3-compatible** | `ccgoon.sh config storage s3` | AWS S3, Cloudflare R2, MinIO |
-| **transfer.sh** | `ccgoon.sh config storage transfer_sh` | Public service, may be unreliable |
+| **Local file** | `ccgoon.sh config storage local` | Manual transfer (AirDrop, IM) |
 
-**Aliyun OSS** (recommended for China):
+**Aliyun OSS**:
 ```bash
 ~/.cc-go-on/ccgoon.sh config storage oss
 ~/.cc-go-on/ccgoon.sh config storage_options.oss.bucket my-bucket
@@ -148,9 +147,10 @@ cc-go-on/
 │   ├── export.sh            # Package → redact → encrypt → upload
 │   ├── import.sh            # Download → decrypt → path remap → install
 │   └── storage/
-│       ├── local.sh         # Local file (default)
+│       ├── gist.sh          # GitHub Gist (default)
 │       ├── oss.sh           # Aliyun OSS
 │       ├── s3.sh            # S3-compatible (AWS, R2, MinIO)
+│       ├── local.sh         # Local file
 │       └── transfer_sh.sh   # transfer.sh
 ├── adapters/
 │   ├── claude-code/         # Claude Code adapter
