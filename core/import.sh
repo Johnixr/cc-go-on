@@ -182,5 +182,14 @@ with open('$f', 'w') as fh:
         echo ""
         echo -e "  Next: ${GREEN}$resume_hint${NC} to load the session"
     fi
+
+    # 10. Auto-cleanup: delete gist after successful import
+    if [[ "$url" == gist://* ]] && command -v gh &>/dev/null; then
+        local gist_id="${url#gist://}"
+        gist_id="${gist_id%%/*}"
+        if gh gist delete "$gist_id" 2>/dev/null; then
+            log_info "Gist auto-deleted (one-time use)"
+        fi
+    fi
     echo ""
 }
